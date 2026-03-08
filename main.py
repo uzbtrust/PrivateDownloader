@@ -10,6 +10,7 @@ except RuntimeError:
 import logging
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import BotCommand
 
 import config
 import database
@@ -21,7 +22,6 @@ async def main():
     os.makedirs(config.SESSION_DIR, exist_ok=True)
     os.makedirs(config.DATA_DIR, exist_ok=True)
     
-    await database.reset_db()
     await database.init_db()
     
     if not config.BOT_TOKEN:
@@ -29,6 +29,10 @@ async def main():
         return
         
     bot = Bot(token=config.BOT_TOKEN)
+    await bot.set_my_commands([
+        BotCommand(command="start", description="Bosh menyu")
+    ])
+    
     dp = Dispatcher(storage=MemoryStorage())
     
     dp.include_router(start.router)

@@ -48,10 +48,8 @@ async def sign_in(phone_number: str, phone_code: str):
     try:
         user = await client.sign_in(phone_number, phone_code_hash, phone_code)
         session_string = await client.export_session_string()
-        await database.add_account(phone_number)
-        await database.update_account_session(phone_number, session_string)
         del auth_sessions[phone_number]
-        return {"ok": True, "user": user}
+        return {"ok": True, "user": user, "session_string": session_string}
     except SessionPasswordNeeded:
         return {"ok": True, "requires_password": True}
     except Exception as e:
@@ -66,10 +64,8 @@ async def check_password(phone_number: str, password: str):
     try:
         user = await client.check_password(password)
         session_string = await client.export_session_string()
-        await database.add_account(phone_number)
-        await database.update_account_session(phone_number, session_string)
         del auth_sessions[phone_number]
-        return {"ok": True, "user": user}
+        return {"ok": True, "user": user, "session_string": session_string}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
