@@ -25,10 +25,12 @@ def format_progress(current: int, total: int, start_time: float, prefix: str = "
         remaining_bytes = total - current
         eta_seconds = remaining_bytes / speed_bps
         
-        if eta_seconds > 3600:
-            eta_str = f"{int(eta_seconds // 3600)}s {int((eta_seconds % 3600) // 60)}d"
-        elif eta_seconds > 60:
-            eta_str = f"{int(eta_seconds // 60)}d {int(eta_seconds % 60)}s"
+        if eta_seconds >= 86400:
+            eta_str = f"{int(eta_seconds // 86400)}d {int((eta_seconds % 86400) // 3600)}h"
+        elif eta_seconds >= 3600:
+            eta_str = f"{int(eta_seconds // 3600)}h {int((eta_seconds % 3600) // 60)}m"
+        elif eta_seconds >= 60:
+            eta_str = f"{int(eta_seconds // 60)}m {int(eta_seconds % 60)}s"
         else:
             eta_str = f"{int(eta_seconds)}s"
             
