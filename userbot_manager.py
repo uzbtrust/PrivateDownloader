@@ -139,6 +139,10 @@ async def download_message_media(phone_number: str, link: str, bot_username: str
             pass # Fallback to download
 
         if message.media:
+            # Prevent "is_premium" NoneType error on large files by caching bot's own user info first
+            if getattr(client, "me", None) is None:
+                await client.get_me()
+                
             file_path = await client.download_media(message, file_name=config.DATA_DIR + "/", progress=progress_down)
             
             if message.photo:

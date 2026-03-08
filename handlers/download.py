@@ -31,6 +31,8 @@ async def process_link(message: Message, state: FSMContext):
     bot_info = await message.bot.get_me()
     bot_username = bot_info.username
 
+    import time
+    start_time_down = time.time()
     last_down_perc = 0
     async def progress_down(current, total):
         nonlocal last_down_perc
@@ -39,11 +41,12 @@ async def process_link(message: Message, state: FSMContext):
         if perc - last_down_perc >= 5:
             last_down_perc = perc
             try:
-                text = format_progress(current, total, prefix="📥 Data tortilmoqda:\n")
+                text = format_progress(current, total, start_time_down, prefix="📥 Data tortilmoqda:\n")
                 await progress_msg.edit_text(text)
             except:
                 pass
 
+    start_time_up = time.time()
     last_up_perc = 0
     async def progress_up(current, total):
         nonlocal last_up_perc
@@ -52,7 +55,7 @@ async def process_link(message: Message, state: FSMContext):
         if perc - last_up_perc >= 5:
             last_up_perc = perc
             try:
-                text = format_progress(current, total, prefix="📤 Sizga yuborilmoqda:\n")
+                text = format_progress(current, total, start_time_up, prefix="📤 Sizga yuborilmoqda:\n")
                 await progress_msg.edit_text(text)
             except:
                 pass
