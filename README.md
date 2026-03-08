@@ -20,7 +20,4 @@ A Telegram bot made using Aiogram 3 and Pyrogram that acts as a userbot to downl
 - Secure database mapping for individual users.
 - Fast downloads via localized userbot session tracking.
 
-## Contributors
-- uzbtrust
-
 Made with ❤️ by uzbtrust
