@@ -22,6 +22,15 @@ async def main():
     os.makedirs(config.SESSION_DIR, exist_ok=True)
     os.makedirs(config.DATA_DIR, exist_ok=True)
     
+    # Clean dangling data files on boot
+    for f in os.listdir(config.DATA_DIR):
+        file_path = os.path.join(config.DATA_DIR, f)
+        if os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+            except:
+                pass
+                
     await database.init_db()
     
     if not config.BOT_TOKEN:

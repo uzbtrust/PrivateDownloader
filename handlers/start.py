@@ -64,8 +64,22 @@ async def select_account(callback: CallbackQuery, state: FSMContext):
         [InlineKeyboardButton(text="🔙 Orqaga", callback_data="main_menu")]
     ])
     
-    await callback.message.edit_text(
-        f"✅ Akkaunt tanlandi: {phone}\n\n"
+    import userbot_manager
+    msg = await callback.message.edit_text(f"⏳ Akkaunt tekshirilmoqda: {phone}...")
+    
+    status = await userbot_manager.get_account_status(phone)
+    if status.get("ok"):
+        is_premium = status.get("is_premium", False)
+        limit = "4 GB" if is_premium else "2 GB"
+        premium_text = "✨ Telegram Premium" if is_premium else "👤 Oddiy foydalanuvchi"
+    else:
+        limit = "Noma'lum"
+        premium_text = "Holatni aniqlab bo'lmadi"
+    
+    await msg.edit_text(
+        f"✅ Akkaunt tanlandi: {phone}\n"
+        f"Holat: {premium_text}\n"
+        f"Maksimal yuklash hajmi: {limit}\n\n"
         f"📥 Endi menga maxfiy yoki public kanal / guruhdan link yuboring (masalan: https://t.me/c/1234567/100)",
         reply_markup=keyboard
     )

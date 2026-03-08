@@ -90,6 +90,20 @@ async def disconnect_auth(phone_number: str):
                 except Exception:
                     pass
 
+async def get_account_status(phone_number: str):
+    client = get_client(phone_number)
+    try:
+        if not client.is_connected:
+            await client.connect()
+            
+        if getattr(client, "me", None) is None:
+            client.me = await client.get_me()
+            
+        is_premium = getattr(client.me, "is_premium", False)
+        return {"ok": True, "is_premium": bool(is_premium)}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
 async def download_message_media(phone_number: str, link: str, bot_username: str, progress_down=None, progress_up=None):
     client = get_client(phone_number)
     try:
@@ -138,11 +152,18 @@ async def download_message_media(phone_number: str, link: str, bot_username: str
         except Exception:
             pass # Fallback to download
 
+        if getattr(client, "me", None) is None:
+            client.me = await client.get_me()
+            
+        is_premium = getattr(client.me, "is_premium", False)
+        max_size_bytes = (4000 if is_premium else 2000) * 1024 * 1024
+
         if message.media:
-            # Prevent "is_premium" NoneType error on large files by caching bot's own user info first
-            if getattr(client, "me", None) is None:
-                client.me = await client.get_me()
-                
+            # Check file size before downloading
+            file_size = getattr(message, message.media.value).file_size if hasattr(message, str(message.media.value)) else 0
+            if file_size > max_size_bytes:
+                return {"ok": False, "error": f"Fayl hajmi ({file_size / (1024*1024):.1f}MB) ruxsat etilgan limitdan ({2000 if not is_premium else 4000}MB) katta. Telegram bunga ruxsat bermaydi."}
+            
             file_path = await client.download_media(message, file_name=config.DATA_DIR + "/", progress=progress_down)
             
             if message.photo:
