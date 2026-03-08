@@ -28,62 +28,47 @@ async def process_link(message: Message, state: FSMContext):
 
     progress_msg = await message.answer("✅ Link qabul qilindi! Ma'lumot izlanmoqda va yuklashga tayyorlanmoqda, kuting... ⏳")
     
-    last_perc = 0
-    async def pyrogram_progress(current, total):
-        nonlocal last_perc
+    bot_info = await message.bot.get_me()
+    bot_username = bot_info.username
+
+    last_down_perc = 0
+    async def progress_down(current, total):
+        nonlocal last_down_perc
         if total == 0: return
         perc = (current / total) * 100
-        if perc - last_perc >= 10:
-            last_perc = perc
+        if perc - last_down_perc >= 5:
+            last_down_perc = perc
             try:
-                text = format_progress(current, total)
-                await progress_msg.edit_text(f"⏳ Yuklanmoqda: {text}")
+                text = format_progress(current, total, prefix="📥 Data tortilmoqda:\n")
+                await progress_msg.edit_text(text)
+            except:
+                pass
+
+    last_up_perc = 0
+    async def progress_up(current, total):
+        nonlocal last_up_perc
+        if total == 0: return
+        perc = (current / total) * 100
+        if perc - last_up_perc >= 5:
+            last_up_perc = perc
+            try:
+                text = format_progress(current, total, prefix="📤 Sizga yuborilmoqda:\n")
+                await progress_msg.edit_text(text)
             except:
                 pass
 
     try:
-        result = await userbot_manager.download_message_media(phone, link, progress_callback=pyrogram_progress)
+        result = await userbot_manager.download_message_media(
+            phone, link, bot_username, 
+            progress_down=progress_down, 
+            progress_up=progress_up
+        )
         
         if not result.get("ok"):
             await progress_msg.edit_text(f"❌ Xatolik yuz berdi: {result.get('error')}")
             return
             
-        await progress_msg.edit_text("⏳ Fayl serverga olindi, endi sizga yuborilmoqda...")
-        
-        if result.get("type") == "text":
-            await message.answer(result.get("text"))
-            await progress_msg.delete()
-        elif result.get("type") == "media":
-            file_path = result.get("file_path")
-            caption = result.get("caption") or ""
-            
-            input_file = FSInputFile(file_path)
-            py_msg = result.get("message")
-            
-            try:
-                if py_msg.photo:
-                    await message.answer_photo(photo=input_file, caption=caption)
-                elif py_msg.video:
-                    await message.answer_video(video=input_file, caption=caption)
-                elif py_msg.audio:
-                    await message.answer_audio(audio=input_file, caption=caption)
-                elif py_msg.document:
-                    await message.answer_document(document=input_file, caption=caption)
-                elif py_msg.voice:
-                    await message.answer_voice(voice=input_file, caption=caption)
-                elif py_msg.animation:
-                    await message.answer_animation(animation=input_file, caption=caption)
-                elif py_msg.sticker:
-                    await message.answer_sticker(sticker=input_file)
-                else:
-                    await message.answer_document(document=input_file, caption=caption)
-            except Exception as e:
-                await message.answer(f"❌ Faylni yuborishda xatolik: {str(e)}")
-            finally:
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-            
-            await progress_msg.delete()
+        await progress_msg.delete()
             
     except Exception as e:
         await progress_msg.edit_text(f"❌ Kutilmagan xatolik: {str(e)}")

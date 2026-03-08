@@ -90,7 +90,7 @@ async def disconnect_auth(phone_number: str):
                 except Exception:
                     pass
 
-async def download_message_media(phone_number: str, link: str, progress_callback=None):
+async def download_message_media(phone_number: str, link: str, bot_username: str, progress_down=None, progress_up=None):
     client = get_client(phone_number)
     try:
         if not client.is_connected:
@@ -131,11 +131,40 @@ async def download_message_media(phone_number: str, link: str, progress_callback
         if not message or message.empty:
              return {"ok": False, "error": "Xabarni topib bo'lmadi yoki ruxsat yo'q"}
              
+        # Instant transfer if channel allows it
+        try:
+            await client.copy_message(chat_id=bot_username, from_chat_id=chat_id, message_id=message_id)
+            return {"ok": True}
+        except Exception:
+            pass # Fallback to download
+
         if message.media:
-            file_path = await client.download_media(message, file_name=config.DATA_DIR + "/", progress=progress_callback)
-            return {"ok": True, "type": "media", "file_path": file_path, "caption": message.caption, "text": None, "message": message}
+            file_path = await client.download_media(message, file_name=config.DATA_DIR + "/", progress=progress_down)
+            
+            if message.photo:
+                await client.send_photo(chat_id=bot_username, photo=file_path, caption=message.caption, progress=progress_up)
+            elif message.video:
+                await client.send_video(chat_id=bot_username, video=file_path, caption=message.caption, progress=progress_up)
+            elif message.audio:
+                await client.send_audio(chat_id=bot_username, audio=file_path, caption=message.caption, progress=progress_up)
+            elif message.document:
+                await client.send_document(chat_id=bot_username, document=file_path, caption=message.caption, progress=progress_up)
+            elif message.voice:
+                await client.send_voice(chat_id=bot_username, voice=file_path, caption=message.caption, progress=progress_up)
+            elif message.animation:
+                await client.send_animation(chat_id=bot_username, animation=file_path, caption=message.caption, progress=progress_up)
+            elif message.sticker:
+                await client.send_sticker(chat_id=bot_username, sticker=file_path, progress=progress_up)
+            else:
+                await client.send_document(chat_id=bot_username, document=file_path, caption=message.caption, progress=progress_up)
+                
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                
+            return {"ok": True}
         elif message.text:
-            return {"ok": True, "type": "text", "text": message.text, "file_path": None, "message": message}
+            await client.send_message(chat_id=bot_username, text=message.text)
+            return {"ok": True}
         else:
             return {"ok": False, "error": "Qo'llab-quvvatlanmaydigan xabar turi"}
             
