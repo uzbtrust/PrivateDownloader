@@ -17,6 +17,10 @@ def get_client(phone_number: str) -> Client:
         name=session_name,
         api_id=config.API_ID,
         api_hash=config.API_HASH,
+        device_model="iPhone 15 Pro Max",
+        system_version="17.4.1",
+        app_version="10.11.1",
+        lang_code="en",
         in_memory=False
     )
     clients[phone_number] = client

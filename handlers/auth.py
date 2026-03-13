@@ -36,7 +36,8 @@ async def process_phone(message: Message, state: FSMContext):
         await state.update_data(attempts=0)
         await state.set_state(AuthState.waiting_for_code)
         await msg.edit_text(
-            f"✅ {phone} raqamiga Telegram orqali kod yuborildi.\n\n"
+            f"✅ {phone} raqamiga kod yuborildi.\n"
+            f"📲 KODNI TELEGRAM DASTURIDAN QIDIRING (Telegram rasmiy akkauntidan yozishadi, oddiy SMS kelmasligi mumkin)!\n\n"
             f"⚠️ XAVFSIZLIK UCHUN: Telegram kodingizni bloklab qo'ymasligi uchun "
             f"kodni TERSKARI tartibda kiriting!\n"
             f"Masalan: agar kod 12345 bo'lsa, siz botga 54321 deb yuboring.", 
